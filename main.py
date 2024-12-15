@@ -8,8 +8,6 @@ from supabase import create_client, Client
 url: str ="https://wzzxpvdkqhyomheehkjt.supabase.co"
 key: str ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enhwdmRrcWh5b21oZWVoa2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMzM4NjIsImV4cCI6MjA0OTcwOTg2Mn0.91tW7zUqoFKp8ozJBKBTM4Uw6llTTXJB511uFCg6ARU"
 supabase: Client = create_client(url, key)
-response = supabase.table("Transakcije").select("*").execute()
-print(response)
 
 def saveBtnPressed():
     print("Save button clicked")
@@ -158,14 +156,16 @@ for j in range(4): #Columns
         b = CTkLabel(tableHolder, text=tableColumns[j], font=("Arial Bold", 16))
         b.grid(row=0, column=j)
 
-for i in range(1, 10): #Rows
-    for j in range(4): #Columns
-        b = CTkLabel(tableHolder, text="12313123", font=("Arial", 16))
-        b.grid(row=i, column=j)
+response = supabase.table("Transakcije").select("*").execute()
 
-
-
-
+if response.data:
+    for i, row in enumerate(response.data, start=1): 
+        CTkLabel(tableHolder, text=row['Kategorija'], font=("Arial", 16)).grid(row=i, column=0)
+        CTkLabel(tableHolder, text=row['Datum'], font=("Arial", 16)).grid(row=i, column=1)
+        CTkLabel(tableHolder, text=row['Iznos'], font=("Arial", 16)).grid(row=i, column=2)
+        CTkLabel(tableHolder, text=row['Opis'], font=("Arial", 16)).grid(row=i, column=3)
+else:
+    CTkLabel(tableHolder, text="Nema podataka", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
 
 
 window.mainloop()
