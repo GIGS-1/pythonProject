@@ -2,6 +2,15 @@
 from tkinter import ttk
 from tkcalendar import *
 from customtkinter import *
+import os
+from supabase import create_client, Client
+
+
+url: str ="https://wzzxpvdkqhyomheehkjt.supabase.co"
+key: str ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enhwdmRrcWh5b21oZWVoa2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMzM4NjIsImV4cCI6MjA0OTcwOTg2Mn0.91tW7zUqoFKp8ozJBKBTM4Uw6llTTXJB511uFCg6ARU"
+supabase: Client = create_client(url, key)
+response = supabase.table("Transakcije").select("*").execute()
+print(response)
 
 def saveBtnPressed():
     print("Save button clicked")
