@@ -5,7 +5,6 @@ from customtkinter import *
 import os
 from supabase import create_client, Client
 
-
 url: str ="https://wzzxpvdkqhyomheehkjt.supabase.co"
 key: str ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enhwdmRrcWh5b21oZWVoa2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMzM4NjIsImV4cCI6MjA0OTcwOTg2Mn0.91tW7zUqoFKp8ozJBKBTM4Uw6llTTXJB511uFCg6ARU"
 supabase: Client = create_client(url, key)
@@ -15,10 +14,16 @@ print(response)
 def saveBtnPressed():
     print("Save button clicked")
     kategorijaValue = kategorija.get()
-    datumValue = datum.get_date()
+    datumValue = datum.get_date().strftime('%Y-%m-%d')
     iznosValue = iznos.get("1.0",'end-1c')
     opisValue = opis.get("1.0",'end-1c')
-
+    response = supabase.table("Transakcije").insert({
+        "Kategorija": kategorijaValue,
+        "Datum": datumValue,
+        "Iznos": iznosValue,
+        "Opis": opisValue
+    }).execute()
+    print(response)
     #provjeri da su dobre vrijednosti i spremi u bazu
 
 def inputBtnPressed():
@@ -68,12 +73,12 @@ datum.place(x=200, y=200)
 
 label4 = CTkLabel(InputPage, text="Iznos", font=("Arial Bold", 16))
 label4.place(x=50, y=230)
-iznos = CTkTextbox(InputPage, height = 1, width = 20, font=("Arial Bold", 16))
+iznos = CTkTextbox(InputPage, height = 1, width = 100, font=("Arial Bold", 16))
 iznos.place(x=200, y=230)
 
 label5 = CTkLabel(InputPage, text="Opis", font=("Arial Bold", 16))
 label5.place(x=50, y=260)
-opis = CTkTextbox(InputPage, height = 15, width = 40, font=("Arial Bold", 16))
+opis = CTkTextbox(InputPage, height = 100, width = 400, font=("Arial Bold", 16))
 opis.place(x=200, y=260)
 
 save = CTkButton(InputPage, width=10, text="Spremi", command=saveBtnPressed)
