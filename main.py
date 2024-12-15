@@ -24,7 +24,11 @@ def tableBtnPressed():
     print("Table button clicked")
     TablePage.tkraise()
 
+def tableBtnPressed():
+    print("not working")
+    TablePage.tkraise()
 
+ #proba dal ovo radi
 #Kreiranje windowa
 window = CTk()
 window.title("Transaction Master")
