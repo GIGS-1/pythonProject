@@ -15,6 +15,7 @@ import datetime as dt
 from datetime import timedelta
 import math
 import re
+import bcrypt
 
 url: str ="https://wzzxpvdkqhyomheehkjt.supabase.co"
 key: str ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enhwdmRrcWh5b21oZWVoa2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMzM4NjIsImV4cCI6MjA0OTcwOTg2Mn0.91tW7zUqoFKp8ozJBKBTM4Uw6llTTXJB511uFCg6ARU"
@@ -358,8 +359,6 @@ def plot():
         #canvas.get_tk_widget().pack() 
 
 
-
-
 #Kreiranje windowa
 window = CTk()
 window.title("Transaction Master")
@@ -391,6 +390,58 @@ table_icon = CTkImage(light_image=Image.open("table.png"), size=(20, 20))
 
 
 
+
+# Ekran za login
+LoginPage = CTkFrame(window, width=850, height=700)
+LoginPage.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+def registerBtnPressed():
+    usernameValue = username.get()
+    passwordValue = password.get()
+    hashed_password = bcrypt.hashpw(passwordValue.encode('utf-8'), bcrypt.gensalt())
+    response = supabase.table("Users").insert({
+        "Username": usernameValue,
+        "Password": hashed_password.decode('utf-8')
+    }).execute()
+    print(response)
+    InputPage.tkraise()
+
+def loginBtnPressed():
+    usernameValue = username.get()
+    passwordValue = password.get()
+    response = supabase.table("Users").select("Password").eq("Username", usernameValue).execute()
+    if response.data:
+        stored_hashed_password = response.data[0]['Password']
+        if bcrypt.checkpw(passwordValue.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+            InputPage.tkraise()
+        else:
+            loginMessage.configure(text="Invalid credentials")
+    else:
+        loginMessage.configure(text="Invalid credentials")
+
+loginTitle = CTkLabel(LoginPage, text="Login", font=("Arial Bold", 40))
+loginTitle.place(relx=0.5, y=50, anchor=CENTER)
+
+usernameLabel = CTkLabel(LoginPage, text="Username", font=("Arial Bold", 16))
+usernameLabel.place(x=200, y=200)
+username = CTkEntry(LoginPage, width=200, font=("Arial Bold", 16))
+username.place(x=350, y=200)
+
+passwordLabel = CTkLabel(LoginPage, text="Password", font=("Arial Bold", 16))
+passwordLabel.place(x=200, y=250)
+password = CTkEntry(LoginPage, width=200, font=("Arial Bold", 16), show="*")
+password.place(x=350, y=250)
+
+loginButton = CTkButton(LoginPage, width=70, height=40, text="Login", command=loginBtnPressed)
+loginButton.place(x=350, y=300)
+
+registerButton = CTkButton(LoginPage, width=70, height=40, text="Register", command=registerBtnPressed)
+registerButton.place(x=450, y=300)
+
+loginMessage = CTkLabel(LoginPage, text="", font=("Arial Bold", 16))
+loginMessage.place(x=350, y=350)
+
+LoginPage.tkraise()
 
 
 
@@ -437,9 +488,6 @@ graph.place(x=350, y=100)
 
 table = CTkButton(InputPage, width=15,height=50,text="Prikaz transakcija", image=table_icon, compound="left", command=tableBtnPressed)
 table.place(x=500, y=100)
-
-
-
 
 
 
@@ -616,6 +664,6 @@ tableHolder = CTkScrollableFrame(master=TablePage, width=620, height=520)
 tableHolder.pack()
 tableHolder.place(x=200, y=160)
 
-InputPage.tkraise()
+LoginPage.tkraise()
 
 window.mainloop()
