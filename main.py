@@ -20,7 +20,7 @@ import bcrypt
 url: str ="https://wzzxpvdkqhyomheehkjt.supabase.co"
 key: str ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enhwdmRrcWh5b21oZWVoa2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMzM4NjIsImV4cCI6MjA0OTcwOTg2Mn0.91tW7zUqoFKp8ozJBKBTM4Uw6llTTXJB511uFCg6ARU"
 supabase: Client = create_client(url, key)
-
+user_id = None
 def exitBtnPressed():
     print("Exit button clicked")
     window.destroy()
@@ -39,7 +39,8 @@ def saveBtnPressed():
             "Kategorija": kategorijaValue,
             "Datum": datumValue,
             "Iznos": iznosValue,
-            "Opis": opisValue
+            "Opis": opisValue,
+            "user_id": user_id
         }).execute()
         print(response)
         iznos.delete('1.0', END)
@@ -107,16 +108,21 @@ def filterBtnPressed():
 
         if response.data:
             databaseData = list(response.data)
-            databaseData.sort(key = lambda x: x['Datum'])
-            
-            for i, row in enumerate(databaseData, start=1): 
-                CTkLabel(tableHolder, text=row['Kategorija'], font=("Arial", 16), width=100).grid(row=i, column=0)
-                CTkLabel(tableHolder, text=row['Datum'], font=("Arial", 16), width=100).grid(row=i, column=1)
-                CTkLabel(tableHolder, text=row['Iznos'], font=("Arial", 16), width=70).grid(row=i, column=2)
-                CTkLabel(tableHolder, text=row['Opis'], font=("Arial", 16), width=330).grid(row=i, column=3)
-            
+            databaseData.sort(key=lambda x: x['Datum'])
+
+            filteredData = [row for row in databaseData if row['user_id'] == user_id]
+
+            if filteredData:
+                for i, row in enumerate(filteredData, start=1):
+                    CTkLabel(tableHolder, text=row['Kategorija'], font=("Arial", 16), width=100).grid(row=i, column=0)
+                    CTkLabel(tableHolder, text=row['Datum'], font=("Arial", 16), width=100).grid(row=i, column=1)
+                    CTkLabel(tableHolder, text=row['Iznos'], font=("Arial", 16), width=70).grid(row=i, column=2)
+                    CTkLabel(tableHolder, text=row['Opis'], font=("Arial", 16), width=330).grid(row=i, column=3)
+            else:
+                CTkLabel(tableHolder, text="Nema podataka za ovog korisnika", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
         else:
             CTkLabel(tableHolder, text="Nema podataka", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
+
 
     else:
         if(iznosOdValue != "" and iznosDoValue != ""):
@@ -130,16 +136,20 @@ def filterBtnPressed():
 
         if response.data:
             databaseData = list(response.data)
-            databaseData.sort(key = lambda x: x['Datum'])
-            
-            for i, row in enumerate(databaseData, start=1): 
-                CTkLabel(tableHolder, text=row['Kategorija'], font=("Arial", 16), width=100).grid(row=i, column=0)
-                CTkLabel(tableHolder, text=row['Datum'], font=("Arial", 16), width=100).grid(row=i, column=1)
-                CTkLabel(tableHolder, text=row['Iznos'], font=("Arial", 16), width=70).grid(row=i, column=2)
-                CTkLabel(tableHolder, text=row['Opis'], font=("Arial", 16), width=330).grid(row=i, column=3)
-            
+            databaseData.sort(key=lambda x: x['Datum'])
+            filteredData = [row for row in databaseData if row['user_id'] == user_id]
+
+            if filteredData:
+                for i, row in enumerate(filteredData, start=1):
+                    CTkLabel(tableHolder, text=row['Kategorija'], font=("Arial", 16), width=100).grid(row=i, column=0)
+                    CTkLabel(tableHolder, text=row['Datum'], font=("Arial", 16), width=100).grid(row=i, column=1)
+                    CTkLabel(tableHolder, text=row['Iznos'], font=("Arial", 16), width=70).grid(row=i, column=2)
+                    CTkLabel(tableHolder, text=row['Opis'], font=("Arial", 16), width=330).grid(row=i, column=3)
+            else:
+                CTkLabel(tableHolder, text="Nema podataka za ovog korisnika", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
         else:
             CTkLabel(tableHolder, text="Nema podataka", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
+
     
 def promjenaGrafa(event):
     if (filterGrafKategorija.get() == "Stanje"):
@@ -394,25 +404,32 @@ table_icon = CTkImage(light_image=Image.open("table.png"), size=(20, 20))
 # Ekran za login
 LoginPage = CTkFrame(window, width=850, height=700)
 LoginPage.place(relx=0.5, rely=0.5, anchor=CENTER)
-
 def registerBtnPressed():
+    global user_id
     usernameValue = username.get()
+    if not usernameValue or not password.get():
+        loginMessage.configure(text="Username and password cannot be empty")
+        return
     passwordValue = password.get()
     hashed_password = bcrypt.hashpw(passwordValue.encode('utf-8'), bcrypt.gensalt())
-    response = supabase.table("Users").insert({
+    supabase.table("Users").insert({
         "Username": usernameValue,
         "Password": hashed_password.decode('utf-8')
     }).execute()
-    print(response)
+    user_id = getUserId(username.get())
+    print(f"User ID: {user_id}")
     InputPage.tkraise()
 
 def loginBtnPressed():
+    global user_id
     usernameValue = username.get()
     passwordValue = password.get()
     response = supabase.table("Users").select("Password").eq("Username", usernameValue).execute()
     if response.data:
         stored_hashed_password = response.data[0]['Password']
         if bcrypt.checkpw(passwordValue.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+            user_id = getUserId(username.get())
+            print(f"User ID: {user_id}")
             InputPage.tkraise()
         else:
             loginMessage.configure(text="Invalid credentials")
@@ -441,10 +458,23 @@ registerButton.place(x=450, y=300)
 loginMessage = CTkLabel(LoginPage, text="", font=("Arial Bold", 16))
 loginMessage.place(x=350, y=350)
 
+def getUserId(username):
+    response = supabase.table("Users").select("id").eq("Username", username).execute()
+    if response.data:
+        return response.data[0]['id']
+    else:
+        return None
+
 LoginPage.tkraise()
 
+# Logout button
+def clearFields():
+    username.delete(0, END)
+    password.delete(0, END)
+    loginMessage.configure(text="")
 
-
+logoutButton = CTkButton(InputPage, width=70, height=40, text="Logout", command=lambda: [clearFields(), LoginPage.tkraise()])
+logoutButton.place(x=600, y=600)
 
 # Ekran za unos
 title = CTkLabel(InputPage, text="Transaction Master", font=("Arial Bold", 40))
