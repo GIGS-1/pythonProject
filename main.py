@@ -123,7 +123,6 @@ def filterBtnPressed():
         else:
             CTkLabel(tableHolder, text="Nema podataka", font=("Arial", 16)).grid(row=1, column=0, columnspan=4)
 
-
     else:
         if(iznosOdValue != "" and iznosDoValue != ""):
             response = supabase.table("Transakcije").select("*").in_("Kategorija", categoryTableFilterArray).lte('Datum', datumDoValue).gte('Datum', datumOdValue).lte("Iznos", iznosDoValue).gte("Iznos", iznosOdValue).execute()
@@ -330,18 +329,25 @@ def plot():
             if response.count:
                 print("aaaaaaaaaaaaaaaaaaaaaaaa")
 
-            sum = 0
-            for i, row in enumerate(response.data, start=1):
-                if row['Kategorija'] == "Placa":
-                    sum += row['Iznos']
+            filteredData = [row for row in response.data if row['user_id'] == user_id]
+
+            if filteredData:
+                print("Filtered data found!")
+                sum = 0
+                for i, row in enumerate(filteredData, start=1):
+                    if row['Kategorija'] == "Placa":
+                        sum += row['Iznos']
+                    else:
+                        sum -= row['Iznos']
+
+                values.append(sum)
+                if sum >= 0:
+                    colors.append("green")
                 else:
-                    sum -= row['Iznos']
-            
-            values.append(sum)
-            if sum >= 0:
-                colors.append("green")
+                    colors.append("red")
             else:
-                colors.append("red")
+                values.append(0)
+                colors.append("gray")
 
         fig.autofmt_xdate(rotation=90)
 
