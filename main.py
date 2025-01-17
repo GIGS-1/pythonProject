@@ -700,6 +700,17 @@ tableHolder = CTkScrollableFrame(master=TablePage, width=620, height=520)
 tableHolder.pack()
 tableHolder.place(x=200, y=160)
 
+
+#Alert
+alertTitle = CTkLabel(Alert, text="Error", font=("Arial Bold", 20))
+alertTitle.place(relx=0.5, y=20, anchor=CENTER)
+
+message = CTkLabel(Alert, text="", font=("Arial Bold", 15), wraplength=190)
+message.place(relx=0.5, y=60, anchor=CENTER)
+
+okButton = CTkButton(Alert, width=50, text="Ok", command=okButtonPressed)
+okButton.place(relx=0.5, y=130, anchor=CENTER)
+
 LoginPage.tkraise()
 
 window.mainloop()
